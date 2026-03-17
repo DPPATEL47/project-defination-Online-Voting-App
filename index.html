@@ -1,1 +1,93 @@
-hello
+<!DOCTYPE html>
+<html ng-app="voteApp">
+<head>
+    <title>Online Voting App</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.js"></script>
+
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        nav a { margin-right: 15px; color: blue; text-decoration: none; }
+        button { padding: 5px 10px; margin: 5px; }
+        .winner { color: green; font-weight: bold; }
+    </style>
+</head>
+
+<body>
+
+<h2>🗳️ Online Voting App</h2>
+
+<nav>
+    <a href="#!/">Home</a>
+    <a href="#!/vote">Vote</a>
+    <a href="#!/result">Results</a>
+</nav>
+
+<hr>
+
+<div ng-view></div>
+
+<script>
+var app = angular.module("voteApp", ["ngRoute"]);
+
+app.config(function($routeProvider) {
+    $routeProvider
+    .when("/", {
+        template: "<h3>Welcome to Voting App</h3><p>Select a candidate and vote.</p>"
+    })
+    .when("/vote", {
+        template: `
+        <h3>Vote Here</h3>
+        <button ng-click="vote('A')">Candidate A</button>
+        <button ng-click="vote('B')">Candidate B</button>
+        <button ng-click="vote('C')">Candidate C</button>
+        `,
+        controller: "voteCtrl"
+    })
+    .when("/result", {
+        template: `
+        <h3>Results</h3>
+        <p>Candidate A: {{votes.A}}</p>
+        <p>Candidate B: {{votes.B}}</p>
+        <p>Candidate C: {{votes.C}}</p>
+        <h4 class="winner">Winner: {{winner}}</h4>
+        `,
+        controller: "resultCtrl"
+    })
+    .otherwise({
+        redirectTo: "/"
+    });
+});
+
+app.factory("voteService", function() {
+    var votes = {A:0, B:0, C:0};
+    return {
+        get: function() { return votes; },
+        addVote: function(c) { votes[c]++; }
+    };
+});
+
+app.controller("voteCtrl", function($scope, voteService) {
+    $scope.vote = function(c) {
+        voteService.addVote(c);
+        alert("Vote Added");
+    };
+});
+
+app.controller("resultCtrl", function($scope, voteService) {
+    $scope.votes = voteService.get();
+
+    function getWinner() {
+        var max = Math.max($scope.votes.A, $scope.votes.B, $scope.votes.C);
+        if(max === $scope.votes.A) return "Candidate A";
+        if(max === $scope.votes.B) return "Candidate B";
+        return "Candidate C";
+    }
+
+    $scope.winner = getWinner();
+});
+</script>
+
+</body>
+</html>
